@@ -74,7 +74,7 @@ Save metadata
 
 ## Architecture diagram
 
-![Схема архитектуры Silero VAD](sheme.png)
+![Схема архитектуры Silero VAD](scheme.png)
 
 ## Silero VAD pipeline
 
