@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Voice Dataset Collector</string>
+    <string name="start">START COLLECTING</string>
+    <string name="stop">STOP COLLECTING</string>
+    <string name="status_active">● ACTIVE — listening for speech</string>
+    <string name="status_stopped">○ STOPPED</string>
+    <string name="status_mic_denied">Microphone permission denied</string>
+    <string name="audio_config_summary">16 kHz · mono · PCM16 · local Silero VAD</string>
+    <string name="silence_title">SILENCE CUTOFF</string>
+    <string name="silence_summary">Close the current WAV after %1$d seconds of silence. You can change this while recording.</string>
+    <string name="dataset_title">DATASET</string>
+    <string name="audio_time">AUDIO</string>
+    <string name="files">FILES</string>
+    <string name="storage">STORAGE</string>
+    <string name="open_recordings">OPEN RECORDINGS</string>
+    <string name="export_dataset">EXPORT DATASET (.ZIP)</string>
+    <string name="exporting">EXPORTING…</string>
+    <string name="export_done">Dataset exported</string>
+    <string name="export_failed">Export failed</string>
+    <string name="open_app_settings">APP SETTINGS</string>
+    <string name="recordings_path">Storage path:\n%1$s</string>
+    <string name="privacy_note">All VAD processing and WAV recording stay on the phone. USB is not required after installation.</string>
+    <string name="recordings_title">RECORDINGS</string>
+    <string name="back">BACK</string>
+    <string name="empty_recordings">No WAV files yet.</string>
+    <string name="recording_meta">%1$s · %2$s</string>
+    <string name="no_audio_player">No application is available to play WAV files.</string>
+</resources>

@@ -1,0 +1,13 @@
+<resources>
+    <color name="bg_black">#03060D</color>
+    <color name="panel_black">#08111F</color>
+    <color name="panel_black_2">#0C1728</color>
+    <color name="neon_blue">#168BFF</color>
+    <color name="neon_blue_bright">#42B8FF</color>
+    <color name="neon_blue_dim">#194E7A</color>
+    <color name="text_primary">#F4F9FF</color>
+    <color name="text_secondary">#8EA8C2</color>
+    <color name="text_dark">#020810</color>
+    <color name="stop_red">#FF3D65</color>
+    <color name="transparent">#00000000</color>
+</resources>
