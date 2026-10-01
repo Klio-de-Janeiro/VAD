@@ -19,7 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Tap a WAV to open it in an audio player"
+        android:text="Tap to play · Long press or tap the circle to select"
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
@@ -34,6 +34,67 @@
         app:cornerRadius="18dp"
         app:strokeColor="@color/neon_blue_dim"
         app:strokeWidth="1dp" />
+
+    <LinearLayout
+        android:id="@+id/selectionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@color/panel_black"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/selectedCountText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Selected: 0"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/shareSelectedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="SHARE"
+                android:textColor="@color/text_dark"
+                app:backgroundTint="@color/neon_blue_bright"
+                app:cornerRadius="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/deleteSelectedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="DELETE"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@color/stop_red"
+                app:cornerRadius="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cancelSelectionButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="CANCEL"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@color/panel_black_2"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/neon_blue_dim"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/emptyText"
