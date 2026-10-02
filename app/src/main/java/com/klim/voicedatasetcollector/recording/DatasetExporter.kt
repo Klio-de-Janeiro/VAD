@@ -7,22 +7,30 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 object DatasetExporter {
-    fun exportZip(context: Context, destination: Uri) {
-        val root = RecordingPaths.recordingsRoot(context)
-        val output = context.contentResolver.openOutputStream(destination)
-            ?: error("Could not open export destination")
+    @Volatile var exporting = false
+        private set
 
-        output.use { raw ->
-            ZipOutputStream(BufferedOutputStream(raw)).use { zip ->
-                root.walkTopDown()
-                    .filter { it.isFile && !it.name.endsWith(".part") }
-                    .forEach { file ->
-                        val relative = file.relativeTo(root).invariantSeparatorsPath
-                        zip.putNextEntry(ZipEntry(relative))
-                        file.inputStream().buffered().use { input -> input.copyTo(zip) }
-                        zip.closeEntry()
+    @Synchronized
+    fun exportZip(context: Context, destination: Uri) {
+        check(!RecordingService.isMarkedActive(context)) { "Stop recording before exporting" }
+        exporting = true
+        try {
+            val root = RecordingPaths.recordingsRoot(context)
+            val output = context.contentResolver.openOutputStream(destination)
+                ?: error("Could not open export destination")
+            output.use { raw ->
+                ZipOutputStream(BufferedOutputStream(raw)).use { zip ->
+                    synchronized(MetadataStore.lock) {
+                        root.walkTopDown()
+                            .filter { it.isFile && it.extension !in setOf("part", "bak", "new") }
+                            .forEach { file ->
+                                zip.putNextEntry(ZipEntry(file.relativeTo(root).invariantSeparatorsPath))
+                                file.inputStream().buffered().use { input -> input.copyTo(zip) }
+                                zip.closeEntry()
+                            }
                     }
+                }
             }
-        }
+        } finally { exporting = false }
     }
 }

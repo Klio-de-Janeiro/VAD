@@ -7,6 +7,8 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.widget.TextView
 import android.widget.Toast
@@ -15,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.klim.voicedatasetcollector.recording.DatasetExporter
 import com.klim.voicedatasetcollector.recording.DatasetStats
 import com.klim.voicedatasetcollector.recording.RecordingPaths
@@ -26,6 +29,19 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
+    private val handler = Handler(Looper.getMainLooper())
+    private var wasActive = false
+    private val refreshTask = object : Runnable {
+        override fun run() {
+            val active = RecordingService.isMarkedActive(this@MainActivity)
+            if (wasActive && !active) refreshStats()
+            wasActive = active
+            refreshUi()
+            handler.postDelayed(this, 1_000)
+        }
+    }
+    private lateinit var enhanceSwitch: SwitchMaterial
+    private lateinit var normalizeSwitch: SwitchMaterial
     private lateinit var statusText: TextView
     private lateinit var startStopButton: MaterialButton
     private lateinit var silenceSummary: TextView
@@ -75,6 +91,15 @@ class MainActivity : AppCompatActivity() {
             RecordingPaths.recordingsRoot(this).absolutePath
         )
 
+        enhanceSwitch = findViewById(R.id.enhanceSwitch)
+        normalizeSwitch = findViewById(R.id.normalizeSwitch)
+        enhanceSwitch.isChecked = RecordingSettings.getEnhance(this)
+        normalizeSwitch.isChecked = RecordingSettings.getNormalize(this)
+        enhanceSwitch.setOnCheckedChangeListener { _, value ->
+            RecordingSettings.setEnhance(this, value)
+            normalizeSwitch.isEnabled = value && !RecordingService.isMarkedActive(this)
+        }
+        normalizeSwitch.setOnCheckedChangeListener { _, value -> RecordingSettings.setNormalize(this, value) }
         setupSilenceControls()
 
         startStopButton.setOnClickListener {
@@ -90,6 +115,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         exportButton.setOnClickListener {
+            if (RecordingService.isMarkedActive(this)) {
+                Toast.makeText(this, R.string.stop_before_export, Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
             exportLauncher.launch("VoiceDatasetCollector_$timestamp.zip")
         }
@@ -110,6 +139,13 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         refreshUi()
         refreshStats()
+        handler.removeCallbacks(refreshTask)
+        handler.post(refreshTask)
+    }
+
+    override fun onPause() {
+        handler.removeCallbacks(refreshTask)
+        super.onPause()
     }
 
     private fun setupSilenceControls() {
@@ -179,8 +215,8 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, RecordingService::class.java).apply {
             action = RecordingService.ACTION_START
         }
-        ContextCompat.startForegroundService(this, intent)
-        RecordingService.markActive(this, true)
+        runCatching { ContextCompat.startForegroundService(this, intent) }
+            .onFailure { Toast.makeText(this, "Не удалось запустить запись: ${it.message}", Toast.LENGTH_LONG).show() }
         refreshUi()
     }
 
@@ -190,14 +226,16 @@ class MainActivity : AppCompatActivity() {
                 action = RecordingService.ACTION_STOP
             }
         )
-        RecordingService.markActive(this, false)
         refreshUi()
         refreshStats()
     }
 
     private fun refreshUi() {
         val active = RecordingService.isMarkedActive(this)
-        statusText.text = if (active) getString(R.string.status_active) else getString(R.string.status_stopped)
+        statusText.text = RecordingService.statusMessage
+        startStopButton.isEnabled = !RecordingService.stopping && !DatasetExporter.exporting
+        enhanceSwitch.isEnabled = !active
+        normalizeSwitch.isEnabled = !active && enhanceSwitch.isChecked
         startStopButton.text = if (active) getString(R.string.stop) else getString(R.string.start)
 
         val color = ContextCompat.getColor(
@@ -219,6 +257,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun exportDataset(uri: Uri) {
+        if (RecordingService.isMarkedActive(this)) {
+            Toast.makeText(this, R.string.stop_before_export, Toast.LENGTH_LONG).show()
+            return
+        }
         exportButton.isEnabled = false
         exportButton.text = getString(R.string.exporting)
 

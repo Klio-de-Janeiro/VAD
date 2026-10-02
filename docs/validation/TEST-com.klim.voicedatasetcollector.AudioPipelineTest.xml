@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.klim.voicedatasetcollector.AudioPipelineTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-02T14:58:07.524Z" hostname="ee89b3f398ca" time="0.464">
+  <properties/>
+  <testcase name="digitalSilenceStaysSilent" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.057"/>
+  <testcase name="writerRefusesToOverwriteExistingRecordings" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.002"/>
+  <testcase name="steadyNoiseIsReducedWithBoundedAttenuation" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.073"/>
+  <testcase name="elevenMinuteConversationSplitsAtTenMinutesWithoutMissingOrDuplicatedPcm" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.275"/>
+  <testcase name="stftReconstructsSignalWithoutLatencyOrBoundaryLoss" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.009"/>
+  <testcase name="invalidWavDoesNotModifyInput" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.002"/>
+  <testcase name="enhancementPreservesEverySampleCountAndOriginalBytes" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.012"/>
+  <testcase name="normalizationHasCeilingAndBoostLimit" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.015"/>
+  <testcase name="qualityFlagsClippingDcAndSilenceWithoutNan" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.001"/>
+  <testcase name="highPassRejectsDcAndPreservesVoiceBand" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.003"/>
+  <testcase name="silenceCounterSurvivesDurationBoundary" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.002"/>
+  <testcase name="profileDoesNotLearnSpeech" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.003"/>
+  <testcase name="interruptedRawCanBeRecoveredAndRecoveryIsIdempotent" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.001"/>
+  <testcase name="stoppingExactlyAtLimitDoesNotCreateEmptyPart" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.003"/>
+  <testcase name="prerollIsIncludedOnceAndNewSpeechHasNewConversation" classname="com.klim.voicedatasetcollector.AudioPipelineTest" time="0.003"/>
+  <system-out><![CDATA[Stationary noise RMS ratio: 0.47347189517390215
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -17,6 +17,9 @@ import androidx.core.content.FileProvider
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.klim.voicedatasetcollector.recording.RecordingPaths
+import com.klim.voicedatasetcollector.recording.RecordingService
+import com.klim.voicedatasetcollector.recording.MetadataStore
+import com.klim.voicedatasetcollector.recording.DatasetExporter
 import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
@@ -80,7 +83,7 @@ class RecordingsActivity : AppCompatActivity() {
     private fun loadRecordings() {
         files = RecordingPaths.recordingsRoot(this)
             .walkTopDown()
-            .filter { it.isFile && it.extension.equals("wav", ignoreCase = true) }
+            .filter { it.isFile && it.extension.equals("wav", ignoreCase = true) && it.parentFile?.name != "clean" }
             .sortedByDescending { it.lastModified() }
             .toList()
 
@@ -136,6 +139,21 @@ class RecordingsActivity : AppCompatActivity() {
     }
 
     private fun openAudio(file: File) {
+        val cleaned = File(file.parentFile, "clean/${file.name}")
+        if (file.parentFile?.name != "clean" && cleaned.exists()) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(file.name)
+                .setItems(arrayOf("Слушать оригинал", "Слушать очищенную копию", "Поделиться очищенной копией")) { _, which ->
+                    when (which) {
+                        0 -> launchPlayer(file)
+                        1 -> launchPlayer(cleaned)
+                        2 -> shareFiles(listOf(cleaned))
+                    }
+                }.show()
+        } else launchPlayer(file)
+    }
+
+    private fun launchPlayer(file: File) {
         val uri = fileUri(file)
 
         val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -201,6 +219,10 @@ class RecordingsActivity : AppCompatActivity() {
     }
 
     private fun confirmDelete(filesToDelete: List<File>) {
+        if (RecordingService.isMarkedActive(this) || DatasetExporter.exporting) {
+            Toast.makeText(this, R.string.stop_before_export, Toast.LENGTH_LONG).show()
+            return
+        }
         val existing = filesToDelete.filter { it.exists() }
         if (existing.isEmpty()) {
             Toast.makeText(this, "No files to delete", Toast.LENGTH_SHORT).show()
@@ -214,9 +236,9 @@ class RecordingsActivity : AppCompatActivity() {
         }
 
         val message = if (existing.size == 1) {
-            "${existing.first().name}\n\nThe WAV file will be permanently deleted. Its entry will also be removed from metadata.jsonl."
+            "${existing.first().name}\n\nОригинал, очищенная копия и их метаданные будут удалены."
         } else {
-            "The selected WAV files will be permanently deleted. Their entries will also be removed from metadata.jsonl."
+            "Выбранные оригиналы, очищенные копии и их метаданные будут удалены."
         }
 
         MaterialAlertDialogBuilder(this)
@@ -230,14 +252,17 @@ class RecordingsActivity : AppCompatActivity() {
     }
 
     private fun deleteFilesAndCleanMetadata(filesToDelete: List<File>) {
+        if (RecordingService.isMarkedActive(this) || DatasetExporter.exporting) return
         val deletedByDirectory = linkedMapOf<File, MutableSet<String>>()
         var deletedCount = 0
         var failedCount = 0
 
+        synchronized(MetadataStore.lock) {
         filesToDelete.forEach { file ->
             val parent = file.parentFile
 
-            if (file.delete()) {
+            val cleaned = File(parent, "clean/${file.name}")
+            if ((!cleaned.exists() || cleaned.delete()) && file.delete()) {
                 deletedCount++
 
                 if (parent != null) {
@@ -251,7 +276,8 @@ class RecordingsActivity : AppCompatActivity() {
         }
 
         deletedByDirectory.forEach { (directory, deletedNames) ->
-            cleanMetadataJsonl(directory, deletedNames)
+            MetadataStore.remove(directory, deletedNames)
+        }
         }
 
         exitSelectionMode()
@@ -265,41 +291,6 @@ class RecordingsActivity : AppCompatActivity() {
         }
 
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-    }
-
-    private fun cleanMetadataJsonl(
-        directory: File,
-        deletedFileNames: Set<String>
-    ) {
-        val metadataFile = File(directory, "metadata.jsonl")
-        if (!metadataFile.exists()) return
-
-        val keptLines = metadataFile
-            .readLines()
-            .filter { line ->
-                if (line.isBlank()) {
-                    false
-                } else {
-                    try {
-                        val json = JSONObject(line)
-                        json.optString("file") !in deletedFileNames
-                    } catch (_: Exception) {
-                        // Do not destroy malformed/unknown metadata lines.
-                        true
-                    }
-                }
-            }
-
-        metadataFile.writeText(
-            if (keptLines.isEmpty()) {
-                ""
-            } else {
-                keptLines.joinToString(
-                    separator = "\n",
-                    postfix = "\n"
-                )
-            }
-        )
     }
 
     private fun fileUri(file: File): Uri =
@@ -342,6 +333,16 @@ class RecordingsActivity : AppCompatActivity() {
                 dateFormat.format(Date(file.lastModified())),
                 formatSize(file.length())
             )
+
+            val sidecar = File(file.parentFile, "${file.nameWithoutExtension}.json")
+            val details = runCatching { JSONObject(sidecar.readText()) }.getOrNull()
+            val clean = File(file.parentFile, "clean/${file.name}")
+            val processing = details?.optJSONObject("processing")?.optString("status")
+            val warnings = details?.optJSONObject("quality")?.optJSONArray("warnings")
+            meta.append(if (clean.exists()) " · RAW + CLEAN" else " · RAW")
+            if (processing in listOf("failed", "skipped_busy", "pending")) meta.append(" · обработка: $processing")
+            if (details?.has("part_index") == true) meta.append(" · часть ${details.optInt("part_index")}")
+            if (warnings != null && warnings.length() > 0) meta.append(" · качество: $warnings")
 
             val isSelected = selectedFiles.contains(file)
 

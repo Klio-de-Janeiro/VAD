@@ -90,6 +90,28 @@
             app:cornerRadius="24dp"
             app:elevation="0dp" />
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/enhanceSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/enhance_audio"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/normalizeSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/normalize_audio"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/processing_hint"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

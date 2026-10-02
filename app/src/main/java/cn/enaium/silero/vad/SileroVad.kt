@@ -32,6 +32,9 @@ class SileroVad(
                 windowSize - 1
             ) / windowSize
 
+    var lastProbability: Float = 0f
+        private set
+
     private var speechFramesCount = 0
     private var silenceFramesCount = 0
     private var lastSpeechState = false
@@ -69,7 +72,7 @@ class SileroVad(
 
                 audioData[i]
                     .toInt()
-                    .toFloat() / 32767.0f
+                    .toFloat() / 32768.0f
             }
 
         return isSpeech(floatData)
@@ -85,6 +88,7 @@ class SileroVad(
                 samplingRate
             )[0]
 
+        lastProbability = probability
         return isContinuousSpeech(
             probability >= startThreshold
         )

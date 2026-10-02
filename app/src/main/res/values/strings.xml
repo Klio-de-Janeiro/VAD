@@ -25,4 +25,8 @@
     <string name="empty_recordings">No WAV files yet.</string>
     <string name="recording_meta">%1$s · %2$s</string>
     <string name="no_audio_player">No application is available to play WAV files.</string>
+    <string name="enhance_audio">Очищенная копия WAV (оригинал сохраняется)</string>
+    <string name="normalize_audio">Выравнивать пик громкости копии (до +6 дБ)</string>
+    <string name="processing_hint">Настройки обработки применяются перед START. Диалог дольше 10 минут автоматически продолжается в следующем файле. Для оценки фона оставьте около секунды тишины перед речью.</string>
+    <string name="stop_before_export">Сначала остановите запись и дождитесь окончания обработки.</string>
 </resources>

@@ -28,8 +28,8 @@ class SileroVadModel internal constructor(
             tempFile: File,
             windowSize: Int
         ): SileroVadModel {
-            tempFile.outputStream().use { output ->
-                inputStream.copyTo(output)
+            inputStream.use { input ->
+                tempFile.outputStream().use { output -> input.copyTo(output) }
             }
 
             return SileroVadModel(
@@ -48,10 +48,7 @@ class SileroVadModel internal constructor(
             addCPU(true)
         }
 
-        session = env.createSession(
-            modelFile.absolutePath,
-            opts
-        )
+        session = opts.use { env.createSession(modelFile.absolutePath, it) }
 
         resetStates()
     }
